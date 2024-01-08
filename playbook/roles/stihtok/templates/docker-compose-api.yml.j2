@@ -1,0 +1,24 @@
+version: "3.9"
+
+networks:
+  postgres_default:
+    external: true
+
+services:
+  prerender:
+    image: tvanro/prerender-alpine:5.6.0
+    ports:
+      - "127.0.0.1:{{ prerender_port }}:3000"
+    restart: always
+  app:
+    image: api:main
+    networks:
+      - postgres_default
+    ports:
+      - "127.0.0.1:{{ stihtok_api_port }}:8000"
+    env_file:
+      - .api
+    restart: always
+    volumes:
+      - ./static-api:/app/static-api
+      - ./media:/app/media

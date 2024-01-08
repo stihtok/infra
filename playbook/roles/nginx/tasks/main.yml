@@ -1,0 +1,46 @@
+---
+  - name: Add apt key
+    apt_key:
+      keyserver: hkp://keyserver.ubuntu.com:80
+      id: ABF5BD827BD9BF62
+
+  - name: Add Nginx repo
+    apt_repository:
+      repo: deb https://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx
+      state: present
+  
+  - name: Install nginx package
+    apt: 
+      name: nginx={{ nginx_version }}
+
+  - name: Ensure /etc/nginx/sites-enabled/ directory exists.
+    file:
+      path: /etc/nginx/sites-enabled/
+      state: directory
+      mode: 0755  
+
+  - name: Ensure /etc/nginx/sites-available/ directory exists.
+    file:
+      path: /etc/nginx/sites-available/
+      state: directory
+      mode: 0755  
+
+  - name: Remove default conf
+    file:
+      path: /etc/nginx/conf.d/default.conf
+      state: absent
+
+  - name: Upload nginx config
+    template:
+      src: nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+      mode: 0644
+      owner: root
+      group: root
+
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted
+
+

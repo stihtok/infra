@@ -1,0 +1,27 @@
+---
+ - name: Apply roles
+   hosts: prod
+   vars:
+     base_dir: /opt/prod
+     env_name: prod
+     stihtok_domain: stihtok.ru
+     stihtok_api_port: 8001
+     prerender_port: 3001
+     debug: False
+     database_name: apiprod
+     database_user: apiprod
+     database_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          63373233653861396234376435336636633930316230323034323661316561616331643533363031
+          6631376630653338613732333432633766336137376639340a653931666631303830393136323331
+          34306537383561633732343966616137366431616331353661646539343164323830663661346639
+          3061643036393964620a373862646261376534353531373731333663336534306662663037343263
+          6631
+     database_host: postgres
+     database_port: 5432
+   roles:
+     - init
+     - docker
+     - nginx
+     - postgres
+     - stihtok

@@ -1,0 +1,62 @@
+upstream api-{{ stihtok_api_port }} {
+    server 127.0.0.1:{{ stihtok_api_port }};
+}
+
+server {
+    listen 80;
+    server_name {{ stihtok_domain }};
+
+    location /api {
+	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_pass http://api-{{ stihtok_api_port }};
+    }
+
+    location /admin {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_pass http://api-{{ stihtok_api_port }};
+    }
+
+    location /media {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+	    proxy_pass http://api-{{ stihtok_api_port }};
+    }
+
+    location /static-api {
+	    alias {{ base_dir }}/api/static-api;
+    }
+
+    location / {
+        try_files $uri @prerender;
+        add_header Cache-Control "private, no-store, no-cache";
+	    root {{ base_dir }}/frontend;
+    }
+
+    location @prerender {
+        root {{ base_dir }}/frontend;
+	    set $prerender 0;
+        if ($http_user_agent ~* "googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest\/0\.|pinterestbot|slackbot|vkShare|W3C_Validator|whatsapp|telegram") {
+            set $prerender 1;
+        }
+        if ($args ~ "_escaped_fragment_") {
+            set $prerender 1;
+        }
+        if ($http_user_agent ~ "Prerender") {
+            set $prerender 0;
+        }
+        if ($uri ~* "\.(js|css|xml|less|png|jpg|jpeg|gif|pdf|doc|txt|ico|rss|zip|mp3|rar|exe|wmv|doc|avi|ppt|mpg|mpeg|tif|wav|mov|psd|ai|xls|mp4|m4a|swf|dat|dmg|iso|flv|m4v|torrent|ttf|woff|svg|eot)") {
+            set $prerender 0;
+        }
+
+        if ($prerender = 1) {
+            set $prerender "127.0.0.1:{{ prerender_port }}";
+            rewrite .* /$scheme://$host$request_uri? break;
+            proxy_pass http://$prerender;
+        }
+        if ($prerender = 0) {
+            rewrite .* /index.html break;
+        }
+    }
+}

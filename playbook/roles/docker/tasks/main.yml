@@ -1,0 +1,47 @@
+---
+  - name: Install required system packages
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+      state: present
+
+  - name: Add Docker apt key.
+    ansible.builtin.get_url:
+      url: "https://download.docker.com/linux/ubuntu/gpg"
+      dest: /etc/apt/trusted.gpg.d/docker.asc
+      mode: '0644'
+      force: true
+
+  - name: Add Docker repository.
+    apt_repository:
+      repo: "{{ docker_apt_repository }}"
+      state: present
+      update_cache: true
+
+  - name: Install Docker packages.
+    package:
+      name: "{{ docker_packages }}"
+      state: "present"
+
+  - name: Install Docker Compose (if configured).
+    get_url:
+      url: "{{ docker_compose_url }}"
+      dest: "{{ docker_compose_path }}"
+      mode: 0755
+
+  - name: Ensure /etc/docker/ directory exists.
+    file:
+      path: /etc/docker
+      state: directory
+      mode: 0755
+
+  - name: Upload daemon.json
+    template:
+      src: daemon.json.j2
+      dest: /etc/docker/daemon.json
+      mode: 0644
+      owner: root
+      group: root
+

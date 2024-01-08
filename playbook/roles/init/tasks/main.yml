@@ -1,0 +1,20 @@
+---
+  - name: install tools
+    apt:
+      name: ['mc', 'git', 'zsh', 'net-tools', 'htop', 'certbot', 'python3-certbot-nginx', 'screen']
+      update_cache: yes
+
+  - name: Allow root SSH access only via keys
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp="^PermitRootLogin"
+                line="PermitRootLogin without-password"
+                state=present
+
+  - name: Change ssh port
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp="^Port"
+                line="Port 10023"
+                state=present
+
+  - name: restart ssh
+    service: name=ssh  state=restarted

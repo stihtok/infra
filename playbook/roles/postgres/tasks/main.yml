@@ -1,0 +1,25 @@
+---
+  - name: "Ensure {{ postgres_dir }} directory exists."
+    file:
+      path: "{{ postgres_dir }}"
+      state: directory
+      mode: 0755  
+
+  - name: "Ensure {{ postgres_dir }}/data directory exists."
+    file:
+      path: "{{ postgres_dir }}/data"
+      state: directory
+      mode: 0755  
+
+  - name: Upload docker-compose
+    template:
+      src: docker-compose.yml.j2
+      dest: "{{ postgres_dir }}/docker-compose.yml"
+      mode: 0644
+      owner: root
+      group: root
+
+  - name: Docker compose up
+    shell: 
+      cmd: docker-compose up -d
+      chdir: "{{ postgres_dir }}"

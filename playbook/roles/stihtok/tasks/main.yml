@@ -1,0 +1,52 @@
+---
+
+  - name: Create dirs
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0755
+    with_items: 
+      - "{{ base_dir }}"
+      - "{{ api_dir }}"
+      - "{{ api_dir }}/static-api"
+      - "{{ api_dir }}/media"
+      - "{{ base_dir }}/frontend"
+
+  - name: Upload docker-compose API
+    template:
+      src: docker-compose-api.yml.j2
+      dest: "{{ api_dir }}/docker-compose.yml"
+      mode: 0644
+      owner: root
+      group: root
+
+  - name: Upload API env
+    template:
+      src: .api.j2
+      dest: "{{ api_dir }}/.api"
+      mode: 0644
+      owner: root
+      group: root
+
+  - name: Docker compose up
+    shell: 
+      cmd: docker-compose -p {{ env_name }} up -d
+      chdir: "{{ api_dir }}"
+
+  - name: Upload nginx config
+    template:
+      src: nginx-site.conf.j2
+      dest: "/etc/nginx/sites-enabled/{{ stihtok_domain }}.conf"
+      mode: 0644
+      owner: root
+      group: root
+
+  - name: Issue SSL cert and change nginx config
+    shell: "certbot run --nginx --non-interactive --agree-tos -m admin@4te.me --redirect -d {{ stihtok_domain }}"
+
+  - name: Reload nginx
+    service:
+      name: nginx
+      state: reloaded
+
+

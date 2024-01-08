@@ -1,0 +1,9 @@
+---
+ - name: Apply roles
+   hosts: dev
+   roles:
+     - init
+     - docker
+     - nginx
+     - postgres
+     - stihtok
